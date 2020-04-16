@@ -1,18 +1,20 @@
-FROM dockerfile/java:oracle-java8
+# Start with a base image containing Java runtime
+FROM openjdk:8-jdk-alpine
 
-ENV MAVEN_VERSION 3.2.5
+# Add Maintainer Info
+LABEL maintainer="marchioni.francesco@gmail.com"
 
-RUN curl -sSL http://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz | tar xzf - -C /usr/share \
-  && mv /usr/share/apache-maven-$MAVEN_VERSION /usr/share/maven \
-  && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
+# Add a volume pointing to /tmp
+VOLUME /tmp
 
-ENV MAVEN_HOME /usr/share/maven
-
-COPY . /data/springboot-helloworld
-WORKDIR /data/springboot-helloworld
-
-RUN ["mvn", "clean", "install"]
-
+# Make port 8080 available to the world outside this container
 EXPOSE 8080
 
-CMD ["java", "-jar", "target/helloworld-0.0.1-SNAPSHOT.jar"]
+# The application's jar file
+ARG JAR_FILE=target/demo-docker-0.0.1-SNAPSHOT.jar
+
+# Add the application's jar to the container
+ADD ${JAR_FILE} demo-docker-0.0.1-SNAPSHOT.jar
+
+# Run the jar file
+ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/demo-docker-0.0.1-SNAPSHOT.jar"]
