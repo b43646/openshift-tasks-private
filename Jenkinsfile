@@ -13,7 +13,7 @@ node('maven') {
 
   // Checkout Source Code
   stage('Checkout Source') {
-    git credentialsId: 'test', url: 'http://gogs-xyz-gogs.apps.cluster-shanghai-3a4b.shanghai-3a4b.example.opentlc.com/CICDLabs/openshift-tasks-private.git'
+    git credentialsId: 'test', url: 'https://github.com/b43646/openshift-tasks-private.git'
   }
 
   // The following variables need to be defined at the top level
