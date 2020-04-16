@@ -1,16 +1,19 @@
 
 前置条件:
+
 - Gogs
 - Jenkins
 
 
-1. 赋权jenkins，以便于jenkins账户执行应用部署操作。
+##1. 赋权jenkins，以便于jenkins账户执行应用部署操作。##
+
 
 ```
 oc adm policy add-cluster-role-to-user cluster-admin  system:serviceaccount:jenkins:jenkins
 ```
 
-2. 创建Jenkins pipeline文件pipeline.yml
+##2. 创建Jenkins pipeline文件pipeline.yml##
+
 
 ```
 kind: BuildConfig
@@ -31,20 +34,23 @@ spec:
       ref: master
   triggers: []
   runPolicy: Serial
-  ```
+```
   
 > 替换uri地址为自己的gogs代码仓库地址
   
-  ```
-  oc apply -f pipeline.yml
-  ```
-  
-3. 修改nexus仓库地址和认证信息
-  
+```
+oc apply -f pipeline.yml
+```
+
+
+##3. 修改nexus仓库地址和认证信息##
+
+
 > 修改一下nexus_openshift_settings.xml文件中的url、用户名与密码。
-  
-  ```
-  <?xml version="1.0"?>
+
+
+```
+<?xml version="1.0"?>
 <settings>
   <mirrors>
     <mirror>
@@ -62,9 +68,11 @@ spec:
     </server>
   </servers>
 </settings>
-  ```
+```
 
-4. 修改Jenkinsfile
+
+##4. 修改Jenkinsfile##
+
 
 ```
   def mvnCmd = "mvn -s ./nexus_openshift_settings.xml"
@@ -72,11 +80,16 @@ spec:
 ```
 
 > 提交变更到gogs代码仓库
+
+
   
-5. 触发流水线
+##5. 触发流水线##
 
 注意，由于该流水线仅作为演示，在重新启动流水线之前，需要删除hello项目。
+
 ```
+
 oc delete project hello
+
 ```
   
