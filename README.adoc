@@ -1,3 +1,82 @@
-== Spring Boot with Docker
 
-* Source code for tutorial: http://www.masterspringboot.com/cloud/docker/running-a-spring-boot-application-with-docker
+前置条件:
+- Gogs
+- Jenkins
+
+
+1. 赋权jenkins，以便于jenkins账户执行应用部署操作。
+
+```
+oc adm policy add-cluster-role-to-user cluster-admin  system:serviceaccount:jenkins:jenkins
+```
+
+2. 创建Jenkins pipeline文件pipeline.yml
+
+```
+kind: BuildConfig
+apiVersion: build.openshift.io/v1
+metadata:
+  name: tasks-pipeline
+  namespace: jenkins
+spec:
+  strategy:
+    type: JenkinsPipeline
+    jenkinsPipelineStrategy:
+      jenkinsfilePath: Jenkinsfile
+  source:
+    type: Git
+    git:
+      uri: >-
+        http://gogs-xyz-gogs.apps.cluster-shanghai-3a4b.shanghai-3a4b.example.opentlc.com/CICDLabs/openshift-tasks-private.git
+      ref: master
+  triggers: []
+  runPolicy: Serial
+  ```
+  
+> 替换uri地址为自己的gogs代码仓库地址
+  
+  ```
+  oc apply -f pipeline.yml
+  ```
+  
+3. 修改nexus仓库地址和认证信息
+  
+> 修改一下nexus_openshift_settings.xml文件中的url、用户名与密码。
+  
+  ```
+  <?xml version="1.0"?>
+<settings>
+  <mirrors>
+    <mirror>
+      <id>Nexus</id>
+      <name>Nexus Public Mirror</name>
+      <url>http://nexus3.loren-nexus.svc.cluster.local:8081/repository/maven-all-public/</url>
+      <mirrorOf>*</mirrorOf>
+    </mirror>
+  </mirrors>
+  <servers>
+    <server>
+      <id>nexus</id>
+      <username>admin</username>
+      <password>admin123</password>
+    </server>
+  </servers>
+</settings>
+  ```
+
+4. 修改Jenkinsfile
+
+```
+  def mvnCmd = "mvn -s ./nexus_openshift_settings.xml"
+  //def mvnCmd = "mvn"
+```
+
+> 提交变更到gogs代码仓库
+  
+5. 触发流水线
+
+注意，由于该流水线仅作为演示，在重新启动流水线之前，需要删除hello项目。
+```
+oc delete project hello
+```
+  
